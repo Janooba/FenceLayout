@@ -457,7 +457,22 @@ public class FenceLayoutEditor : Editor
 
 	private float SampleTerrainHeight(Vector3 pos)
 	{
-		// Ensure terrain Y position is included.
-		return m_mainTerrain.SampleHeight(pos) + m_mainTerrain.GetPosition().y;
+		// Check if pos is within terrain bounds. If so, sample height including terrain position.
+		if (m_mainTerrain)
+		{
+			Bounds worldBounds = new Bounds(m_mainTerrain.terrainData.bounds.center + m_mainTerrain.transform.position, m_mainTerrain.terrainData.bounds.size);
+			
+			if (worldBounds.Contains(pos))
+				return m_mainTerrain.SampleHeight(pos) + m_mainTerrain.GetPosition().y;
+		}
+
+		// Otherwise use a raycast
+		RaycastHit hit;
+		if (Physics.Raycast(pos, Vector3.down, out hit, 1000f, LayerMask.NameToLayer("everything"), QueryTriggerInteraction.Ignore))
+		{
+			return hit.point.y;
+		}
+		else
+			return pos.y; // If nothing hit, just return pos
 	}
 }
